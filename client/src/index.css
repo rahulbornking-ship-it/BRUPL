@@ -1,0 +1,471 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Babua LMS Design System - Desi, Warm, Playful */
+    --background: 40 100% 97%;
+    --foreground: 240 20% 12%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 20% 12%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 20% 12%;
+
+    /* Saffron Yellow - Primary Brand Color */
+    --primary: 42 100% 50%;
+    --primary-foreground: 240 20% 12%;
+
+    /* Sky Blue - Secondary/CTA Color */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Fresh Green - Success/Accent */
+    --accent: 142 71% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 40 30% 92%;
+    --muted-foreground: 240 10% 40%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 40 30% 88%;
+    --input: 40 30% 88%;
+    --ring: 42 100% 50%;
+
+    --radius: 1rem;
+
+    /* Custom Babua Colors */
+    --babua-yellow: 42 100% 50%;
+    --babua-yellow-light: 45 100% 85%;
+    --babua-blue: 217 91% 60%;
+    --babua-blue-dark: 217 91% 45%;
+    --babua-green: 142 71% 45%;
+    --babua-green-light: 142 71% 90%;
+    --babua-cream: 40 100% 97%;
+    --babua-orange: 25 95% 55%;
+    --babua-purple: 270 70% 60%;
+
+    /* Shadows */
+    --shadow-soft: 0 4px 20px -4px hsl(240 20% 12% / 0.08);
+    --shadow-card: 0 8px 30px -8px hsl(240 20% 12% / 0.12);
+    --shadow-glow-yellow: 0 8px 40px -8px hsl(42 100% 50% / 0.4);
+    --shadow-glow-blue: 0 8px 40px -8px hsl(217 91% 60% / 0.4);
+    --shadow-glow-green: 0 8px 40px -8px hsl(142 71% 45% / 0.4);
+
+    /* Gradients */
+    --gradient-sky: linear-gradient(180deg, hsl(200 90% 85%) 0%, hsl(200 80% 95%) 100%);
+    --gradient-sunset: linear-gradient(135deg, hsl(42 100% 50%) 0%, hsl(25 95% 55%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(40 100% 97%) 0%, hsl(45 100% 94%) 100%);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Helper function to use HSL variables */
+.bg-background {
+  background-color: hsl(var(--background));
+}
+
+.bg-foreground {
+  background-color: hsl(var(--foreground));
+}
+
+.bg-card {
+  background-color: hsl(var(--card));
+}
+
+.bg-primary {
+  background-color: hsl(var(--primary));
+}
+
+.bg-secondary {
+  background-color: hsl(var(--secondary));
+}
+
+.bg-accent {
+  background-color: hsl(var(--accent));
+}
+
+.bg-muted {
+  background-color: hsl(var(--muted));
+}
+
+.bg-destructive {
+  background-color: hsl(var(--destructive));
+}
+
+.text-foreground {
+  color: hsl(var(--foreground));
+}
+
+.text-card-foreground {
+  color: hsl(var(--card-foreground));
+}
+
+.text-primary {
+  color: hsl(var(--primary));
+}
+
+.text-primary-foreground {
+  color: hsl(var(--primary-foreground));
+}
+
+.text-secondary {
+  color: hsl(var(--secondary));
+}
+
+.text-secondary-foreground {
+  color: hsl(var(--secondary-foreground));
+}
+
+.text-accent {
+  color: hsl(var(--accent));
+}
+
+.text-muted-foreground {
+  color: hsl(var(--muted-foreground));
+}
+
+.border-border {
+  border-color: hsl(var(--border));
+}
+
+/* Babua Colors */
+.bg-babua-yellow {
+  background-color: hsl(var(--babua-yellow));
+}
+
+.bg-babua-yellow-light {
+  background-color: hsl(var(--babua-yellow-light));
+}
+
+.bg-babua-blue {
+  background-color: hsl(var(--babua-blue));
+}
+
+.bg-babua-green {
+  background-color: hsl(var(--babua-green));
+}
+
+.bg-babua-green-light {
+  background-color: hsl(var(--babua-green-light));
+}
+
+.bg-babua-cream {
+  background-color: hsl(var(--babua-cream));
+}
+
+.bg-babua-orange {
+  background-color: hsl(var(--babua-orange));
+}
+
+.bg-babua-purple {
+  background-color: hsl(var(--babua-purple));
+}
+
+.text-babua-blue {
+  color: hsl(var(--babua-blue));
+}
+
+.text-babua-green {
+  color: hsl(var(--babua-green));
+}
+
+.text-babua-orange {
+  color: hsl(var(--babua-orange));
+}
+
+/* Shadow utilities */
+.shadow-soft {
+  box-shadow: var(--shadow-soft);
+}
+
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-glow-yellow {
+  box-shadow: var(--shadow-glow-yellow);
+}
+
+.shadow-glow-blue {
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.shadow-glow-green {
+  box-shadow: var(--shadow-glow-green);
+}
+
+@layer components {
+  .container-babua {
+    @apply max-w-[1280px] mx-auto px-6 lg:px-12;
+  }
+
+  .card-babua {
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background-color: hsl(var(--card));
+    box-shadow: var(--shadow-card);
+  }
+
+  .card-babua:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-glow-yellow);
+  }
+
+  .btn-primary-babua {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-4 font-semibold rounded-full transition-all duration-300 hover:scale-105;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+    box-shadow: var(--shadow-glow-blue);
+  }
+
+  .btn-primary-babua:hover {
+    box-shadow: 0 12px 50px -8px hsl(var(--babua-blue) / 0.5);
+  }
+
+  .btn-secondary-babua {
+    @apply inline-flex items-center justify-center gap-2 px-8 py-4 bg-transparent border-2 font-semibold rounded-full transition-all duration-300 hover:scale-105;
+    border-color: hsl(var(--foreground) / 0.2);
+    color: hsl(var(--foreground));
+  }
+
+  .btn-secondary-babua:hover {
+    border-color: hsl(var(--primary));
+    background-color: hsl(var(--primary) / 0.1);
+  }
+
+  .section-title {
+    @apply text-3xl lg:text-4xl font-bold;
+    color: hsl(var(--foreground));
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r;
+    background-image: linear-gradient(to right, hsl(var(--secondary)), hsl(var(--accent)));
+  }
+
+  .floating-animation {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .dotted-pattern {
+    background-image: radial-gradient(circle, hsl(var(--babua-green) / 0.15) 1.5px, transparent 1.5px);
+    background-size: 24px 24px;
+  }
+
+  /* Badge styles from original */
+  .badge {
+    @apply px-3 py-1 rounded-full text-xs font-medium;
+  }
+
+  .badge-easy {
+    @apply bg-emerald-500/20 text-emerald-600 border border-emerald-500/30;
+  }
+
+  .badge-medium {
+    @apply bg-amber-500/20 text-amber-600 border border-amber-500/30;
+  }
+
+  .badge-hard {
+    @apply bg-red-500/20 text-red-500 border border-red-500/30;
+  }
+
+  .badge-foundational {
+    @apply bg-cyan-500/20 text-cyan-600 border border-cyan-500/30;
+  }
+
+  .badge-intermediate {
+    @apply bg-purple-500/20 text-purple-600 border border-purple-500/30;
+  }
+
+  .badge-advanced {
+    @apply bg-rose-500/20 text-rose-500 border border-rose-500/30;
+  }
+}
+
+@layer utilities {
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+
+    50% {
+      transform: translateY(-12px);
+    }
+  }
+
+  @keyframes pulse-soft {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.7;
+    }
+  }
+
+  @keyframes fade-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.6s ease-out;
+  }
+
+  /* Progress ring (from original) */
+  .progress-ring {
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring circle {
+    transition: stroke-dashoffset 0.5s ease-in-out;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/5 backdrop-blur-md border border-white/10;
+  }
+
+  /* GSAP helpers */
+  .gsap-reveal {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  .gsap-reveal-left {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  .gsap-reveal-right {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+}
+
+/* Code block styling */
+pre {
+  @apply rounded-lg p-4 overflow-x-auto;
+  background-color: hsl(var(--foreground));
+}
+
+code {
+  @apply font-mono text-sm;
+}
+
+/* Markdown content styling */
+.markdown-content {
+  color: hsl(var(--foreground) / 0.8);
+}
+
+.markdown-content h2 {
+  @apply text-xl font-bold mt-6 mb-3;
+  color: hsl(var(--foreground));
+}
+
+.markdown-content h3 {
+  @apply text-lg font-semibold mt-4 mb-2;
+  color: hsl(var(--foreground));
+}
+
+.markdown-content p {
+  @apply mb-3;
+}
+
+.markdown-content ul {
+  @apply list-disc list-inside mb-3 space-y-1;
+}
+
+.markdown-content code {
+  @apply px-2 py-1 rounded;
+  background-color: hsl(var(--muted));
+  color: hsl(var(--secondary));
+}
+
+.markdown-content pre {
+  @apply my-4;
+}
+
+.markdown-content pre code {
+  @apply bg-transparent p-0;
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Cyberpunk Theme Styles */
+.glass-panel {
+  background: rgba(26, 26, 26, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.neon-text {
+  text-shadow: 0 0 5px rgba(0, 242, 255, 0.7);
+}
+
+.neon-border {
+  box-shadow: 0 0 5px rgba(0, 242, 255, 0.5), inset 0 0 5px rgba(0, 242, 255, 0.2);
+}
+
+/* Custom Scrollbar for Cyberpunk feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0d0d0d;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1fb1f9;
+}
