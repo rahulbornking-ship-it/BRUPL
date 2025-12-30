@@ -105,14 +105,13 @@ export default function FeaturesSection() {
                                         {feature.description}
                                     </p>
 
-                                    {/* Link */}
-                                    <Link
-                                        to={feature.link}
-                                        className={`inline-flex items-center gap-2 ${feature.linkColor} font-semibold text-sm uppercase tracking-wide hover:underline transition-colors`}
+                                    {/* Button (Disabled Link) */}
+                                    <div
+                                        className={`inline-flex items-center gap-2 ${feature.linkColor} font-semibold text-sm uppercase tracking-wide transition-colors cursor-default`}
                                     >
                                         {feature.linkText}
                                         <span className="text-lg">→</span>
-                                    </Link>
+                                    </div>
                                 </div>
                             </div>
                         );

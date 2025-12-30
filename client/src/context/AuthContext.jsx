@@ -76,14 +76,21 @@ export function AuthProvider({ children }) {
     };
 
     const handleOAuthCallback = async (accessToken, refreshToken) => {
+        // Store tokens first
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
 
         try {
+            // Fetch user data immediately
             const response = await api.get('/auth/me');
             setUser(response.data.data);
+            return true;
         } catch (error) {
             console.error('Failed to fetch user after OAuth:', error);
+            // Clear tokens if fetch fails
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            return false;
         }
     };
 

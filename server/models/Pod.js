@@ -139,7 +139,6 @@ podSchema.methods.removeMember = function (userId) {
 
 // Index for faster queries
 podSchema.index({ 'members.user': 1 });
-podSchema.index({ inviteCode: 1 });
 
 const Pod = mongoose.model('Pod', podSchema);
 

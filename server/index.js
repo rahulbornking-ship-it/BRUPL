@@ -18,6 +18,7 @@ import revisionRoutes from './routes/revisions.js';
 import podRoutes from './routes/pods.js';
 import dashboardRoutes from './routes/dashboard.js';
 import profileRoutes from './src/routes/profile.js';
+import chatRoutes from './routes/chat.js';
 
 // Initialize express app
 const app = express();
@@ -68,6 +69,7 @@ app.use('/api/revisions', revisionRoutes);
 app.use('/api/pods', podRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -87,6 +89,20 @@ io.on('connection', (socket) => {
   // Leave pod room
   socket.on('leave-pod', (podId) => {
     socket.leave(`pod-${podId}`);
+  });
+
+  // Join chat channel
+  socket.on('join-chat', (channel) => {
+    socket.join(`chat-${channel}`);
+    console.log(`User ${socket.id} joined chat channel ${channel}`);
+    // Broadcast user count update
+    io.to(`chat-${channel}`).emit('user-joined', { channel, count: io.sockets.adapter.rooms.get(`chat-${channel}`)?.size || 0 });
+  });
+
+  // Leave chat channel
+  socket.on('leave-chat', (channel) => {
+    socket.leave(`chat-${channel}`);
+    io.to(`chat-${channel}`).emit('user-left', { channel, count: io.sockets.adapter.rooms.get(`chat-${channel}`)?.size || 0 });
   });
 
   socket.on('disconnect', () => {

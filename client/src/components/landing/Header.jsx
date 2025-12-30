@@ -36,10 +36,10 @@ export default function Header() {
                 <div className="flex items-center justify-between h-16 md:h-20">
                     {/* Logo */}
                     <Link to="/" ref={logoRef} className="flex items-center gap-2 md:gap-3">
-                        <span className="text-2xl">🎯</span>
+                        <img src="/favicon.png" alt="Adhyaya Logo" className="w-8 h-8 md:w-10 md:h-10 object-contain" />
                         <div className="flex flex-col">
                             <span className="text-lg md:text-xl font-bold text-orange-500">
-                                BABUA BPL
+                                ADHYAYA
                             </span>
                             <span className="text-[10px] text-gray-400 tracking-wider -mt-1 hidden md:block">
                                 PLACEMENT XPRESS

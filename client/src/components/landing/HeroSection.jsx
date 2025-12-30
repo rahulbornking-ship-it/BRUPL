@@ -1,17 +1,146 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Columns } from 'lucide-react';
 import ThreeBackground from '../common/ThreeBackground';
+import gsap from 'gsap';
+
+// Floating code snippets data
+const floatingCodeSnippets = [
+    { code: 'const dsa = await babua.learn();', color: 'purple' },
+    { code: 'function crackInterview() {', color: 'yellow' },
+    { code: "return '🎉 Offer Letter!';", color: 'green' },
+    { code: 'babua.practice(100);', color: 'blue' },
+    { code: "require('placement-phodna');", color: 'orange' },
+    { code: 'async function solve() {', color: 'purple' },
+    { code: '// Ab chalega kaam! 🚀', color: 'gray' },
+    { code: 'const confidence = 💪;', color: 'yellow' },
+    { code: 'while(true) { learn(); }', color: 'green' },
+    { code: 'if(prepared) { crack(); }', color: 'blue' },
+    { code: 'import success from "hard-work";', color: 'orange' },
+    { code: 'new Promise(resolve => 🏆);', color: 'purple' },
+];
+
+// Floating Code Snippet Component
+function FloatingCodeSnippet({ code, color, index }) {
+    const snippetRef = useRef(null);
+
+    useEffect(() => {
+        if (!snippetRef.current) return;
+
+        // Random starting position
+        const startX = Math.random() * 100 - 50;
+        const startY = Math.random() * 100 - 50;
+
+        // Set initial position
+        gsap.set(snippetRef.current, {
+            x: startX,
+            y: startY,
+            opacity: 0,
+            scale: 0.5,
+        });
+
+        // Entry animation with delay based on index
+        gsap.to(snippetRef.current, {
+            opacity: 0.8,
+            scale: 1,
+            duration: 1,
+            delay: 1.5 + index * 0.2,
+            ease: "back.out(1.7)"
+        });
+
+        // Continuous floating animation
+        const duration = 8 + Math.random() * 10;
+        const xRange = 150 + Math.random() * 200;
+        const yRange = 100 + Math.random() * 150;
+
+        gsap.to(snippetRef.current, {
+            x: `+=${Math.random() > 0.5 ? xRange : -xRange}`,
+            y: `+=${Math.random() > 0.5 ? yRange : -yRange}`,
+            rotation: Math.random() * 20 - 10,
+            duration: duration,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: 2 + index * 0.3
+        });
+
+        // Subtle pulsing glow
+        gsap.to(snippetRef.current, {
+            opacity: 0.4,
+            duration: 2 + Math.random() * 2,
+            repeat: -1,
+            yoyo: true,
+            ease: "sine.inOut",
+            delay: 3 + index * 0.1
+        });
+
+    }, [index]);
+
+    const colorClasses = {
+        purple: 'text-purple-400 border-purple-500/30 shadow-purple-500/20',
+        yellow: 'text-yellow-300 border-yellow-500/30 shadow-yellow-500/20',
+        green: 'text-green-400 border-green-500/30 shadow-green-500/20',
+        blue: 'text-blue-300 border-blue-500/30 shadow-blue-500/20',
+        orange: 'text-orange-400 border-orange-500/30 shadow-orange-500/20',
+        gray: 'text-gray-400 border-gray-500/30 shadow-gray-500/20',
+    };
+
+    // Position snippets around the page
+    const positions = [
+        { top: '5%', left: '5%' },
+        { top: '10%', right: '8%' },
+        { top: '25%', left: '2%' },
+        { top: '20%', right: '3%' },
+        { bottom: '30%', left: '5%' },
+        { bottom: '25%', right: '5%' },
+        { top: '40%', left: '8%' },
+        { top: '35%', right: '10%' },
+        { bottom: '15%', left: '10%' },
+        { bottom: '10%', right: '12%' },
+        { top: '60%', left: '3%' },
+        { top: '55%', right: '2%' },
+    ];
+
+    const position = positions[index % positions.length];
+
+    return (
+        <div
+            ref={snippetRef}
+            className={`absolute font-mono text-xs md:text-sm px-3 py-1.5 rounded-lg bg-[#1a1a1a]/80 border backdrop-blur-sm shadow-lg pointer-events-none z-20 whitespace-nowrap ${colorClasses[color]}`}
+            style={{
+                ...position,
+                boxShadow: `0 0 20px currentColor`,
+            }}
+        >
+            {code}
+        </div>
+    );
+}
 
 export default function HeroSection() {
+    const mockupRef = useRef(null);
+    const sectionRef = useRef(null);
+
     return (
         <section
-            className="pt-32 md:pt-40 pb-16 md:pb-20 relative overflow-hidden"
+            ref={sectionRef}
+            className="pt-32 md:pt-40 pb-16 md:pb-20 relative overflow-visible min-h-screen"
             style={{
                 background: 'linear-gradient(to bottom, #1a1a1a 0%, #2d1f0f 100%)'
             }}
         >
             {/* Three.js Background */}
             <ThreeBackground />
+
+            {/* Floating Code Snippets */}
+            {floatingCodeSnippets.map((snippet, index) => (
+                <FloatingCodeSnippet
+                    key={index}
+                    code={snippet.code}
+                    color={snippet.color}
+                    index={index}
+                />
+            ))}
 
             {/* Decorative gradient orb */}
             <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
@@ -65,7 +194,8 @@ export default function HeroSection() {
                     </div>
 
                     {/* Code Editor Mockup with Hover Rotate */}
-                    <div className="relative max-w-3xl mx-auto group">
+                    <div className="relative max-w-3xl mx-auto group" ref={mockupRef}>
+
                         {/* Glowing background shadow */}
                         <div
                             className="absolute inset-0 -inset-x-8 -inset-y-8 bg-orange-500/20 rounded-[40px] blur-3xl opacity-60 group-hover:opacity-80 transition-opacity duration-500"
@@ -113,7 +243,7 @@ export default function HeroSection() {
 
                         {/* Speech Bubble - Top Right */}
                         <div className="absolute -top-4 -right-4 md:right-4 bg-gradient-to-r from-yellow-400 to-orange-400 text-black px-4 py-2 rounded-2xl text-sm font-bold shadow-lg z-10 transition-transform duration-300 group-hover:rotate-3 group-hover:scale-105">
-                            "Ab Banenge Officer!"
+                            "Ab Place Hoga Babua!"
                             <div className="absolute -bottom-2 left-6 w-4 h-4 bg-yellow-400 rotate-45"></div>
                         </div>
 

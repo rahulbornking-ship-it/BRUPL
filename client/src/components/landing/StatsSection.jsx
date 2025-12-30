@@ -5,10 +5,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const stats = [
-    { value: '10k+', label: 'PADHAAKU BABUAS' },
+    { value: '12.8k+', label: 'PADHAAKU ADHYAYANS' },
     { value: '50+', label: 'DREAM NAUKRI' },
-    { value: '1.2M', label: 'SAWAAL HAL' },
-    { value: '92%', label: 'SELECTION PAKKA' },
+    { value: '700+', label: 'SAWAAL HAL' },
 ];
 
 export default function StatsSection() {
@@ -39,7 +38,7 @@ export default function StatsSection() {
             style={{ background: '#1a1a1a' }}
         >
             <div className="container-babua">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
                     {stats.map((stat, index) => (
                         <div key={index} className="stat-item text-center">
                             <div className="text-3xl md:text-4xl lg:text-5xl font-bold text-orange-500 mb-2">

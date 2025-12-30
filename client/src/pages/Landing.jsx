@@ -5,7 +5,7 @@ import HeroSection from '../components/landing/HeroSection';
 import StatsSection from '../components/landing/StatsSection';
 import FeaturesSection from '../components/landing/FeaturesSection';
 import RoadmapSection from '../components/landing/RoadmapSection';
-import LandingFooter from '../components/landing/LandingFooter';
+import Footer from '../components/common/Footer';
 
 export default function Landing() {
     const { isAuthenticated } = useAuth();
@@ -25,8 +25,9 @@ export default function Landing() {
                 <FeaturesSection />
                 <RoadmapSection />
             </main>
-            <LandingFooter />
+            <Footer transparent />
         </div>
     );
 }
+
 

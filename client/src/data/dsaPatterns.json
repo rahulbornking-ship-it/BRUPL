@@ -1,0 +1,75 @@
+[
+    {
+        "id": "two-pointers-same",
+        "name": "Two Pointers (Same Direction)",
+        "slug": "two-pointers-same",
+        "icon": "👉",
+        "items": [
+            {
+                "id": "remove-duplicates-sorted-array",
+                "title": "Remove Duplicates from Sorted Array",
+                "slug": "remove-duplicates-sorted-array",
+                "difficulty": "easy",
+                "externalLink": "https://leetcode.com/problems/remove-duplicates-from-sorted-array/"
+            },
+            {
+                "id": "move-zeroes",
+                "title": "Move Zeroes",
+                "slug": "move-zeroes",
+                "difficulty": "easy",
+                "externalLink": "https://leetcode.com/problems/move-zeroes/"
+            }
+        ]
+    },
+    {
+        "id": "two-pointers-opposite",
+        "name": "Two Pointers (Opposite Direction)",
+        "slug": "two-pointers-opposite",
+        "icon": "↔️",
+        "items": [
+            {
+                "id": "two-sum-sorted",
+                "title": "Two Sum II - Sorted Array",
+                "slug": "two-sum-sorted",
+                "difficulty": "medium",
+                "externalLink": "https://leetcode.com/problems/two-sum-ii-input-array-is-sorted/"
+            },
+            {
+                "id": "container-most-water",
+                "title": "Container With Most Water",
+                "slug": "container-most-water",
+                "difficulty": "medium",
+                "externalLink": "https://leetcode.com/problems/container-with-most-water/"
+            }
+        ]
+    },
+    {
+        "id": "sliding-window-fixed",
+        "name": "Sliding Window (Fixed)",
+        "slug": "sliding-window-fixed",
+        "icon": "🪟",
+        "items": [
+            {
+                "id": "max-sum-subarray-k",
+                "title": "Maximum Sum Subarray of Size K",
+                "slug": "max-sum-subarray-k",
+                "difficulty": "easy"
+            }
+        ]
+    },
+    {
+        "id": "sliding-window-variable",
+        "name": "Sliding Window (Variable)",
+        "slug": "sliding-window-variable",
+        "icon": "📏",
+        "items": [
+            {
+                "id": "longest-substring-no-repeat",
+                "title": "Longest Substring Without Repeating Characters",
+                "slug": "longest-substring-no-repeat",
+                "difficulty": "medium",
+                "externalLink": "https://leetcode.com/problems/longest-substring-without-repeating-characters/"
+            }
+        ]
+    }
+]

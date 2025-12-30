@@ -92,10 +92,10 @@ export default function PadhaiZone() {
                         {/* Logo */}
                         <Link to="/" className="flex items-center gap-2">
                             <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                                <span className="text-white font-bold text-xl">🎯</span>
+                                <img src="/favicon.png" alt="Adhyaya Logo" className="w-8 h-8 object-contain" />
                             </div>
                             <div>
-                                <div className="font-bold text-white">BABUA BPL</div>
+                                <div className="font-bold text-white">ADHYAYA</div>
                                 <div className="text-[10px] text-gray-500 uppercase tracking-widest">Placement Platform</div>
                             </div>
                         </Link>
@@ -305,8 +305,8 @@ export default function PadhaiZone() {
                                     {/* Button */}
                                     <button
                                         className={`w-full py-3 rounded-xl font-medium transition-all duration-300 ${subject.buttonStyle === 'primary'
-                                                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg hover:shadow-orange-500/20'
-                                                : 'bg-[#2a2a2a] text-gray-300 border border-gray-700 hover:border-gray-600'
+                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:shadow-lg hover:shadow-orange-500/20'
+                                            : 'bg-[#2a2a2a] text-gray-300 border border-gray-700 hover:border-gray-600'
                                             }`}
                                     >
                                         {subject.buttonText}
@@ -324,7 +324,7 @@ export default function PadhaiZone() {
                 <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-2 text-gray-500 text-sm">
                         <span className="text-red-500">❤️</span>
-                        <span>© 2024 BABUA BPL. Bihari Engineers ke liye, Dil se.</span>
+                        <span>© 2024 ADHYAYA. Bihari Engineers ke liye, Dil se.</span>
                     </div>
                     <div className="flex items-center gap-6 text-sm text-gray-500">
                         <Link to="/help" className="hover:text-white transition-colors">Madad (Help)</Link>

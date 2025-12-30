@@ -1,0 +1,481 @@
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import * as THREE from 'three';
+import {
+    Home, Bell, Gift, Mic, Video, Clock, ArrowRight, Play, Users,
+    CheckCircle, Star, Target, Sparkles, MessageSquare, Brain, Zap, Lock
+} from 'lucide-react';
+import InterviewSession from '../components/interview/InterviewSession';
+import InterviewResults from '../components/interview/InterviewResults';
+
+// Animated Background
+function InterviewBackground() {
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        containerRef.current.appendChild(renderer.domElement);
+
+        // Create floating geometric shapes
+        const shapes = [];
+        const geometries = [
+            new THREE.IcosahedronGeometry(1, 0),
+            new THREE.OctahedronGeometry(1, 0),
+            new THREE.TetrahedronGeometry(1, 0),
+        ];
+
+        const colors = [0x06b6d4, 0x8b5cf6, 0x3b82f6, 0x10b981];
+
+        for (let i = 0; i < 20; i++) {
+            const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+            const material = new THREE.MeshBasicMaterial({
+                color: colors[i % colors.length],
+                wireframe: true,
+                transparent: true,
+                opacity: 0.15 + Math.random() * 0.1,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            const side = i % 2 === 0 ? -1 : 1;
+            mesh.position.x = side * (20 + Math.random() * 25);
+            mesh.position.y = (Math.random() - 0.5) * 50;
+            mesh.position.z = (Math.random() - 0.5) * 20 - 10;
+
+            const scale = Math.random() * 2 + 0.5;
+            mesh.scale.set(scale, scale, scale);
+
+            mesh.userData = {
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.02,
+                    y: (Math.random() - 0.5) * 0.02,
+                },
+                floatSpeed: Math.random() * 0.5 + 0.2,
+                floatOffset: Math.random() * Math.PI * 2,
+            };
+
+            shapes.push(mesh);
+            scene.add(mesh);
+        }
+
+        // Particles
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(100 * 3);
+        for (let i = 0; i < 100 * 3; i += 3) {
+            const side = (i / 3) % 2 === 0 ? -1 : 1;
+            positions[i] = side * (15 + Math.random() * 30);
+            positions[i + 1] = (Math.random() - 0.5) * 60;
+            positions[i + 2] = (Math.random() - 0.5) * 30 - 10;
+        }
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0x06b6d4,
+            size: 0.05,
+            transparent: true,
+            opacity: 0.5,
+        });
+
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+
+        let animationId;
+        const clock = new THREE.Clock();
+
+        const animate = () => {
+            animationId = requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            shapes.forEach((shape) => {
+                shape.rotation.x += shape.userData.rotationSpeed.x;
+                shape.rotation.y += shape.userData.rotationSpeed.y;
+                shape.position.y += Math.sin(elapsedTime * shape.userData.floatSpeed + shape.userData.floatOffset) * 0.01;
+            });
+
+            particles.rotation.y = elapsedTime * 0.015;
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        const handleResize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
+            if (containerRef.current) {
+                containerRef.current.removeChild(renderer.domElement);
+            }
+            renderer.dispose();
+        };
+    }, []);
+
+    return <div ref={containerRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
+}
+
+// Navigation items
+const navItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Mock Interview', href: '/mock-interview', icon: Mic, active: true },
+    { name: 'Rewards', href: '/how-to-earn', icon: Gift },
+];
+
+// Interview types
+const interviewTypes = [
+    {
+        id: 'dsa',
+        title: 'DSA Interview',
+        description: 'Practice Data Structures & Algorithms with AI interviewer',
+        icon: Brain,
+        color: 'from-cyan-500 to-blue-500',
+        bgGlow: 'bg-cyan-500/20',
+        duration: '45 mins',
+        difficulty: 'Medium',
+        questions: '2-3 coding problems',
+        available: true,
+    },
+    {
+        id: 'system-design',
+        title: 'System Design',
+        description: 'Design scalable systems with expert feedback',
+        icon: Target,
+        color: 'from-purple-500 to-pink-500',
+        bgGlow: 'bg-purple-500/20',
+        duration: '60 mins',
+        difficulty: 'Hard',
+        questions: '1 design problem',
+        available: true,
+    },
+    {
+        id: 'dbms',
+        title: 'DBMS Interview',
+        description: 'SQL, Normalization, ACID & database concepts',
+        icon: MessageSquare,
+        color: 'from-emerald-500 to-teal-500',
+        bgGlow: 'bg-emerald-500/20',
+        duration: '40 mins',
+        difficulty: 'Medium',
+        questions: '5-6 questions + queries',
+        available: true,
+    },
+    {
+        id: 'custom',
+        title: 'Custom Role Interview',
+        description: 'Enter your target role and practice tailored questions',
+        icon: Users,
+        color: 'from-amber-500 to-orange-500',
+        bgGlow: 'bg-amber-500/20',
+        duration: 'Flexible',
+        difficulty: 'Custom',
+        questions: 'Role-specific questions',
+        available: true,
+        isCustom: true,
+    },
+];
+
+// Companies for practice
+const companies = [
+    { name: 'Google', logo: '🔵' },
+    { name: 'Amazon', logo: '📦' },
+    { name: 'Microsoft', logo: '🪟' },
+    { name: 'Meta', logo: '🔷' },
+    { name: 'Apple', logo: '🍎' },
+    { name: 'Netflix', logo: '🎬' },
+];
+
+// Features
+const features = [
+    {
+        icon: Video,
+        title: 'AI Video Interview',
+        description: 'Practice with realistic AI interviewer',
+    },
+    {
+        icon: Clock,
+        title: 'Real-time Analysis',
+        description: 'Get instant feedback on your answers',
+    },
+    {
+        icon: Star,
+        title: 'Performance Score',
+        description: 'Track your improvement over time',
+    },
+    {
+        icon: CheckCircle,
+        title: 'Detailed Review',
+        description: 'See model answers and explanations',
+    },
+];
+
+export default function MockInterview() {
+    const { user } = useAuth();
+    const userName = user?.name?.split(' ')[0] || 'Babua';
+    const [selectedType, setSelectedType] = useState(null);
+    const [customRole, setCustomRole] = useState('');
+    const [interviewState, setInterviewState] = useState('selection'); // selection, session, results
+    const [interviewResults, setInterviewResults] = useState(null);
+
+    const startInterview = () => {
+        if (!selectedType) return;
+        if (selectedType === 'custom' && !customRole.trim()) return;
+        setInterviewState('session');
+    };
+
+    const handleInterviewEnd = () => {
+        setInterviewState('selection');
+        setSelectedType(null);
+    };
+
+    const handleInterviewResults = (results) => {
+        setInterviewResults(results);
+        setInterviewState('results');
+    };
+
+    const handleRetry = () => {
+        setInterviewResults(null);
+        setInterviewState('session');
+    };
+
+    // Show interview session
+    if (interviewState === 'session') {
+        return (
+            <InterviewSession
+                interviewType={selectedType}
+                customRole={customRole}
+                onEnd={handleInterviewEnd}
+                onResults={handleInterviewResults}
+            />
+        );
+    }
+
+    // Show results
+    if (interviewState === 'results' && interviewResults) {
+        return (
+            <InterviewResults
+                results={interviewResults}
+                interviewType={selectedType}
+                onRetry={handleRetry}
+                onClose={handleInterviewEnd}
+            />
+        );
+    }
+
+    return (
+        <div className="min-h-screen relative overflow-hidden bg-[#020617]">
+            {/* Animated 3D Background */}
+            <InterviewBackground />
+
+            {/* Premium Gradient Orbs */}
+            <div className="fixed top-[-10%] right-[-5%] w-[50%] h-[50%] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse"></div>
+            <div className="fixed bottom-[-10%] left-[-5%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}></div>
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none"></div>
+
+            {/* Top Navigation */}
+            <header className="relative z-50 bg-slate-950/40 backdrop-blur-xl border-b border-white/5 sticky top-0">
+                <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)] group-hover:scale-110 transition-all duration-500">
+                            <img src="/favicon.png" alt="Adhyaya Logo" className="w-8 h-8 object-contain" />
+                        </div>
+                        <div className="hidden md:block">
+                            <div className="font-black text-white tracking-tighter text-xl">ADHYAYA</div>
+                            <div className="text-[10px] text-cyan-400/60 uppercase tracking-[0.3em] font-bold">AI INTERVIEW</div>
+                        </div>
+                    </Link>
+
+                    {/* Centered Nav Links */}
+                    <nav className="hidden lg:flex items-center gap-2 px-2 py-1.5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+                        {navItems.map((item) => (
+                            <Link
+                                key={item.name}
+                                to={item.href}
+                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${item.active
+                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
+                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                    }`}
+                            >
+                                <item.icon className="w-4 h-4" />
+                                {item.name}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    <div className="flex items-center gap-6">
+                        <button className="relative text-slate-400 hover:text-cyan-400 p-2.5 bg-white/5 rounded-xl border border-white/10 transition-all">
+                            <Bell className="w-5 h-5" />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
+                        </button>
+                        <Link to="/profile" className="flex items-center gap-4 group">
+                            <div className="text-right hidden md:block">
+                                <div className="text-white font-bold text-sm tracking-tight">{userName} Bhaiya</div>
+                                <div className="text-emerald-400 text-[10px] font-black flex items-center gap-1.5 justify-end tracking-widest">
+                                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
+                                    ONLINE
+                                </div>
+                            </div>
+                            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-xl group-hover:scale-110 transition-all duration-500 border border-white/20">
+                                {userName.charAt(0)}
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            </header>
+
+            <main className="container mx-auto px-6 py-12 max-w-7xl relative z-10">
+                {/* Hero Section */}
+                <div className="text-center mb-20 animate-in fade-in slide-in-from-top-8 duration-1000">
+                    <div className="inline-flex items-center gap-3 px-5 py-2 bg-white/5 border border-white/10 rounded-full text-cyan-400 text-xs font-black uppercase tracking-[0.2em] mb-8 shadow-2xl">
+                        <div className="w-2 h-2 bg-cyan-400 rounded-full animate-ping"></div>
+                        AI-Powered Practice
+                        <span className="px-2 py-0.5 bg-cyan-500/20 text-cyan-300 text-[10px] rounded-md border border-cyan-500/30">PRO</span>
+                    </div>
+
+                    <h1 className="text-5xl md:text-7xl font-black mb-6 tracking-tighter">
+                        <span className="text-white">Master Your </span>
+                        <span className="bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 bg-clip-text text-transparent">Interview</span>
+                    </h1>
+
+                    <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed font-medium">
+                        Experience the future of interview prep. Dynamic questions, real-time AI feedback, and <span className="text-cyan-400 font-bold">personalized coaching.</span>
+                    </p>
+                </div>
+
+                {/* Features Row */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+                    {features.map((feature, index) => (
+                        <div key={index} className="bg-white/5 backdrop-blur-xl rounded-[2rem] p-6 border border-white/10 hover:border-cyan-500/40 transition-all duration-500 group hover:translate-y-[-8px] shadow-2xl">
+                            <div className="w-14 h-14 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-all duration-500 border border-white/5 shadow-inner">
+                                <feature.icon className="w-7 h-7 text-cyan-400" />
+                            </div>
+                            <h3 className="text-white font-black text-lg mb-2 tracking-tight">{feature.title}</h3>
+                            <p className="text-slate-400 text-sm leading-relaxed font-medium">{feature.description}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Interview Types */}
+                <div className="mb-20">
+                    <div className="flex items-center justify-between mb-10">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl">
+                                <Zap className="w-6 h-6 text-white" />
+                            </div>
+                            <div>
+                                <h2 className="text-3xl font-black text-white tracking-tight">Choose Your Path</h2>
+                                <p className="text-slate-400 font-medium">Select a specialized round to begin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {interviewTypes.map((type) => (
+                            <div
+                                key={type.id}
+                                onClick={() => type.available && setSelectedType(type.id)}
+                                className={`group relative cursor-pointer ${!type.available && 'opacity-60'}`}
+                            >
+                                {/* Glow effect */}
+                                <div className={`absolute -inset-1 bg-gradient-to-r ${type.color} rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-20 transition-all duration-700`}></div>
+
+                                <div className={`relative bg-slate-900/40 backdrop-blur-2xl rounded-[2.5rem] p-8 border-2 transition-all duration-500 shadow-2xl ${selectedType === type.id ? 'border-cyan-500 bg-slate-900/60' : 'border-white/5 hover:border-white/20'}`}>
+                                    {type.comingSoon && (
+                                        <div className="absolute top-6 right-6 flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 text-amber-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-amber-500/20">
+                                            <Lock className="w-3 h-3" />
+                                            Coming Soon
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-start gap-6">
+                                        <div className={`w-20 h-20 bg-gradient-to-br ${type.color} rounded-3xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-700 border border-white/20`}>
+                                            <type.icon className="w-10 h-10 text-white" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-black text-white mb-2 tracking-tight">{type.title}</h3>
+                                            <p className="text-slate-400 text-sm mb-6 leading-relaxed font-medium">{type.description}</p>
+
+                                            <div className="flex flex-wrap items-center gap-3">
+                                                <span className="px-4 py-1.5 bg-white/5 text-slate-300 text-[10px] font-black uppercase tracking-widest rounded-xl border border-white/5 flex items-center gap-2">
+                                                    <Clock className="w-3 h-3 text-cyan-400" />
+                                                    {type.duration}
+                                                </span>
+                                                <span className={`px-4 py-1.5 text-[10px] font-black uppercase tracking-widest rounded-xl border ${type.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                                    type.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' :
+                                                        'bg-red-500/10 text-red-400 border-red-500/20'
+                                                    }`}>
+                                                    {type.difficulty}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Custom role input */}
+                                    {type.isCustom && (
+                                        <div className="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <input
+                                                type="text"
+                                                value={customRole}
+                                                onChange={(e) => setCustomRole(e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                placeholder="e.g., Frontend Developer, SDE-2"
+                                                className="w-full px-6 py-4 bg-white/5 border-2 border-white/10 rounded-2xl text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all font-bold"
+                                            />
+                                        </div>
+                                    )}
+
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Stats / CTA Section */}
+                <div className="relative bg-gradient-to-br from-slate-900/80 via-slate-950/90 to-slate-900/80 rounded-[3rem] p-12 border border-white/10 text-center shadow-2xl overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+
+                    <div className="relative z-10">
+                        <div className="inline-flex items-center gap-3 px-5 py-2 bg-emerald-500/10 text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-8 border border-emerald-500/20 shadow-2xl">
+                            <Sparkles className="w-4 h-4" />
+                            100% FREE FOREVER
+                        </div>
+
+                        <h3 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">Ready to level up?</h3>
+                        <p className="text-slate-400 mb-10 max-w-xl mx-auto text-lg font-medium leading-relaxed">
+                            Practicing with AI increases your success rate by <span className="text-cyan-400 font-black">300%</span>. Your dream job is waiting.
+                        </p>
+
+                        <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+                            <button
+                                onClick={startInterview}
+                                disabled={!selectedType || (selectedType === 'custom' && !customRole.trim())}
+                                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-10 py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black uppercase tracking-widest rounded-[2rem] hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] hover:scale-105 active:scale-[0.95] transition-all disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            >
+                                <Video className="w-6 h-6" />
+                                {selectedType ? `Start ${selectedType === 'custom' ? customRole || 'Custom' : selectedType.toUpperCase()} Session` : 'Select A Round'}
+                                <ArrowRight className="w-6 h-6" />
+                            </button>
+                            <Link
+                                to="/dashboard"
+                                className="text-slate-400 hover:text-white font-black uppercase tracking-widest text-sm transition-all hover:translate-x-[-4px]"
+                            >
+                                ← Back to Dashboard
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+}
+

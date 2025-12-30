@@ -36,8 +36,8 @@ export default function LandingFooter() {
                     {/* Brand Column */}
                     <div className="lg:col-span-1">
                         <Link to="/" className="flex items-center gap-2 mb-4">
-                            <span className="text-2xl">🎯</span>
-                            <span className="text-xl font-bold text-white">BABUA BPL</span>
+                            <img src="/favicon.png" alt="Adhyaya Logo" className="w-8 h-8 object-contain" />
+                            <span className="text-xl font-bold text-white">ADHYAYA</span>
                         </Link>
                         <p className="text-gray-400 text-sm leading-relaxed mb-6">
                             Empowering India's engineering talent. Hamra mission: Har engineer ko haath mein offer lettar.
@@ -99,7 +99,7 @@ export default function LandingFooter() {
                 {/* Bottom Bar */}
                 <div className="mt-12 pt-8 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
                     <p className="text-gray-500 text-sm">
-                        © 2024 BABUA BPL. Made with <span className="text-red-500">❤</span> & LIT Choklet.
+                        © 2024 ADHYAYA. Made with <span className="text-red-500">❤</span> & LIT Choklet.
                     </p>
 
                     {/* Social Links */}

@@ -1,254 +1,297 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import * as THREE from 'three';
 import {
-    Flame, Trophy, Clock, CheckCircle, Play,
-    BarChart3, Home, BookOpen, Code2, ClipboardCheck, Users, Bell,
-    Cpu, Database, Network, Brain, Layers, ArrowUp
+    Play, Flame, Lock, BookOpen, Grid3X3,
+    Database, Server, Network, Cpu, Brain,
+    Bell, Gift, MessageCircle, X, Home, Send,
+    Github, Twitter, Linkedin, Sparkles, Zap, Trophy, Target, ArrowRight, Mic
 } from 'lucide-react';
+import { getTotalLessons as getSDTotalLessons } from '../data/systemDesignCourse';
+import { getDbmsTotalLessons } from '../data/dbmsCourse';
+import Footer from '../components/common/Footer';
 
-// All courses data
-const allCourses = [
-    {
-        id: 'dsa',
-        title: 'Data Structures & Algorithms',
-        shortTitle: 'DSA',
-        description: 'Naukri chahiye to ye to padhna padega babua.',
-        fullDescription: 'Abhi hum Dynamic Programming ke dukh-dard me phase hue hain.',
-        icon: Code2,
-        progress: 65,
-        currentLesson: 'Lecture 4: Dynamic Programming ka Chakravyuh',
-        iconColor: 'text-cyan-500',
-        iconBg: 'bg-cyan-500/10',
-        progressColor: 'bg-cyan-500',
-        gradientFrom: 'from-cyan-500',
-        gradientTo: 'to-blue-500',
-    },
-    {
-        id: 'system-design',
-        title: 'System Design',
-        shortTitle: 'System Design',
-        description: 'Bade socho babua! Netflix jaisa system kaise banega?',
-        fullDescription: 'Scalability, Load Balancing, Microservices samjho.',
-        icon: Layers,
-        progress: 20,
-        currentLesson: 'Lecture 2: Load Balancer Kya Hai?',
-        iconColor: 'text-orange-500',
-        iconBg: 'bg-orange-500/10',
-        progressColor: 'bg-orange-500',
-        gradientFrom: 'from-orange-500',
-        gradientTo: 'to-red-500',
-    },
-    {
-        id: 'operating-systems',
-        title: 'Operating Systems',
-        shortTitle: 'OS',
-        description: 'Computer ka dimaag kaise chalta hai?',
-        fullDescription: 'Process, Threads aur Deadlock se bachna sikho.',
-        icon: Cpu,
-        progress: 0,
-        currentLesson: 'Shuru Karo: Introduction to OS',
-        iconColor: 'text-green-500',
-        iconBg: 'bg-green-500/10',
-        progressColor: 'bg-green-500',
-        gradientFrom: 'from-green-500',
-        gradientTo: 'to-emerald-500',
-    },
-    {
-        id: 'computer-networks',
-        title: 'Computer Networks',
-        shortTitle: 'Networks',
-        description: 'Jaal (Internet) kaise bicha hai?',
-        fullDescription: 'OSI Model, TCP/IP aur Packets ka khel samjho.',
-        icon: Network,
-        progress: 10,
-        currentLesson: 'Lecture 1: OSI Model Ka Rahasya',
-        iconColor: 'text-purple-500',
-        iconBg: 'bg-purple-500/10',
-        progressColor: 'bg-purple-500',
-        gradientFrom: 'from-purple-500',
-        gradientTo: 'to-violet-500',
-    },
-    {
-        id: 'dbms',
-        title: 'DBMS & SQL',
-        shortTitle: 'DBMS',
-        description: 'Data ka Godam! Query maarke nikalna sikho.',
-        fullDescription: 'Normalization, Joins, Indexes sab sikho.',
-        icon: Database,
-        progress: 45,
-        currentLesson: 'Lecture 5: SQL Joins Ka Jadoo',
-        iconColor: 'text-yellow-500',
-        iconBg: 'bg-yellow-500/10',
-        progressColor: 'bg-yellow-500',
-        gradientFrom: 'from-yellow-500',
-        gradientTo: 'to-amber-500',
-    },
-    {
-        id: 'ai-ml',
-        title: 'AI / ML',
-        shortTitle: 'AI/ML',
-        description: 'Jadu Tona (Future Tech). Machine ko sikhana padega.',
-        fullDescription: 'Neural Networks, Deep Learning samjho.',
-        icon: Brain,
-        progress: 5,
-        currentLesson: 'Lecture 1: Machine Learning Kya Hai?',
-        iconColor: 'text-pink-500',
-        iconBg: 'bg-pink-500/10',
-        progressColor: 'bg-pink-500',
-        gradientFrom: 'from-pink-500',
-        gradientTo: 'to-rose-500',
-    },
-    {
-        id: 'oops',
-        title: 'OOPs',
-        shortTitle: 'OOPs',
-        description: 'Classes, Objects, Inheritance ka chakkar.',
-        fullDescription: 'Code ko saaf-suthra rakhne ka tarika.',
-        icon: Code2,
-        progress: 0,
-        currentLesson: 'Shuru Karo: What is OOP?',
-        iconColor: 'text-blue-500',
-        iconBg: 'bg-blue-500/10',
-        progressColor: 'bg-blue-500',
-        gradientFrom: 'from-blue-500',
-        gradientTo: 'to-indigo-500',
-    },
+// Quotes for inspiration
+const quotes = [
+    { text: "Talk is cheap. Show me the code.", author: "Linus Torvalds" },
+    { text: "First, solve the problem. Then, write the code.", author: "John Johnson" },
+    { text: "Code is like humor. When you have to explain it, it's bad.", author: "Cory House" },
+    { text: "Programming is the art of telling a computer what to do.", author: "Donald Knuth" },
 ];
 
-// Stats data
-const statsCards = [
-    {
-        label: 'STREAK',
-        value: '12 Din',
-        icon: Flame,
-        borderColor: 'border-orange-500',
-        iconBg: 'bg-orange-500/20',
-        iconColor: 'text-orange-500',
-        subtitle: 'Maje mein! Lagatar padhai jari hai',
-        subtitleColor: 'text-orange-400',
-    },
-    {
-        label: 'GLOBAL RANK',
-        value: '#432',
-        icon: Trophy,
-        borderColor: 'border-purple-500',
-        iconBg: 'bg-purple-500/20',
-        iconColor: 'text-purple-500',
-        subtitle: '↗ Top 2% students mein',
-        subtitleColor: 'text-purple-400',
-    },
-    {
-        label: 'SAMAY',
-        value: '42 Ghanta',
-        icon: Clock,
-        borderColor: 'border-yellow-500',
-        iconBg: 'bg-yellow-500/20',
-        iconColor: 'text-yellow-500',
-        subtitle: '+4hrs pichle hafte se',
-        subtitleColor: 'text-gray-400',
-    },
-    {
-        label: 'COURSE PURA',
-        value: '65%',
-        icon: CheckCircle,
-        borderColor: 'border-green-500',
-        iconBg: 'bg-green-500/20',
-        iconColor: 'text-green-500',
-        subtitle: 'Bas thoda aur zor lagao!',
-        subtitleColor: 'text-gray-400',
-    },
-];
+// Animated Background Component
+function AnimatedBackground() {
+    const containerRef = useRef(null);
 
-// Nav items
-const navItems = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home, active: true },
-    { name: 'Padhai-Likhai', href: '/padhai-zone', icon: BookOpen },
-    { name: 'Coding', href: '/patterns', icon: Code2 },
-    { name: 'Imtihaan', href: '/revisions', icon: ClipboardCheck },
-    { name: 'Adda', href: '/pods', icon: Users },
-];
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 30;
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        containerRef.current.appendChild(renderer.domElement);
+
+        // Create floating shapes with stone grey + moss green tones
+        const shapes = [];
+        const geometries = [
+            new THREE.IcosahedronGeometry(1, 0),
+            new THREE.OctahedronGeometry(1, 0),
+            new THREE.TetrahedronGeometry(1, 0),
+            new THREE.TorusGeometry(0.8, 0.3, 8, 16),
+        ];
+
+        const colors = [0x4b5563, 0x6b7280, 0x65a30d, 0x84cc16]; // Stone grey + moss green
+
+        for (let i = 0; i < 20; i++) {
+            const geometry = geometries[Math.floor(Math.random() * geometries.length)];
+            const material = new THREE.MeshBasicMaterial({
+                color: colors[i % colors.length],
+                wireframe: true,
+                transparent: true,
+                opacity: 0.18 + Math.random() * 0.1,
+            });
+            const mesh = new THREE.Mesh(geometry, material);
+
+            const side = i % 2 === 0 ? -1 : 1;
+            mesh.position.x = side * (15 + Math.random() * 30);
+            mesh.position.y = (Math.random() - 0.5) * 60;
+            mesh.position.z = (Math.random() - 0.5) * 30 - 10;
+
+            const scale = Math.random() * 2 + 0.5;
+            mesh.scale.set(scale, scale, scale);
+
+            mesh.userData = {
+                rotationSpeed: {
+                    x: (Math.random() - 0.5) * 0.02,
+                    y: (Math.random() - 0.5) * 0.02,
+                },
+                floatSpeed: Math.random() * 0.5 + 0.2,
+                floatOffset: Math.random() * Math.PI * 2,
+            };
+
+            shapes.push(mesh);
+            scene.add(mesh);
+        }
+
+        // Particles
+        const particleGeometry = new THREE.BufferGeometry();
+        const positions = new Float32Array(150 * 3);
+        for (let i = 0; i < 150 * 3; i += 3) {
+            const side = (i / 3) % 2 === 0 ? -1 : 1;
+            positions[i] = side * (10 + Math.random() * 35);
+            positions[i + 1] = (Math.random() - 0.5) * 70;
+            positions[i + 2] = (Math.random() - 0.5) * 40 - 10;
+        }
+        particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        const particleMaterial = new THREE.PointsMaterial({
+            color: 0xa3e635, // Lime green
+            size: 0.06,
+            transparent: true,
+            opacity: 0.5,
+        });
+
+        const particles = new THREE.Points(particleGeometry, particleMaterial);
+        scene.add(particles);
+
+        let animationId;
+        const clock = new THREE.Clock();
+
+        const animate = () => {
+            animationId = requestAnimationFrame(animate);
+            const elapsedTime = clock.getElapsedTime();
+
+            shapes.forEach((shape) => {
+                shape.rotation.x += shape.userData.rotationSpeed.x;
+                shape.rotation.y += shape.userData.rotationSpeed.y;
+                shape.position.y += Math.sin(elapsedTime * shape.userData.floatSpeed + shape.userData.floatOffset) * 0.01;
+            });
+
+            particles.rotation.y = elapsedTime * 0.02;
+            renderer.render(scene, camera);
+        };
+        animate();
+
+        const handleResize = () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        };
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            cancelAnimationFrame(animationId);
+            if (containerRef.current) {
+                containerRef.current.removeChild(renderer.domElement);
+            }
+            renderer.dispose();
+        };
+    }, []);
+
+    return <div ref={containerRef} className="fixed inset-0 pointer-events-none" style={{ zIndex: 0 }} />;
+}
 
 export default function Dashboard() {
-    const { user, isAuthenticated, loading } = useAuth();
-    const [featuredCourseId, setFeaturedCourseId] = useState('dsa');
+    const { user, token } = useAuth();
+    const [streak, setStreak] = useState(0);
+    const [randomQuote] = useState(() => quotes[Math.floor(Math.random() * quotes.length)]);
 
-    // Get featured course and other courses
-    const featuredCourse = allCourses.find(c => c.id === featuredCourseId);
-    const otherCourses = allCourses.filter(c => c.id !== featuredCourseId);
+    // Course progress from localStorage
+    const [sdProgress, setSDProgress] = useState(0);
+    const [dbmsProgress, setDBMSProgress] = useState(0);
 
-    const handleExploreCourse = (courseId) => {
-        setFeaturedCourseId(courseId);
-        // Scroll to top of featured course
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+    // Load course progress from localStorage
+    useEffect(() => {
+        const sdCompleted = localStorage.getItem('sdCourseProgress');
+        if (sdCompleted) {
+            try {
+                const completedLessons = JSON.parse(sdCompleted);
+                const totalLessons = getSDTotalLessons();
+                setSDProgress(Math.round((completedLessons.length / totalLessons) * 100));
+            } catch (e) { console.error('Failed to parse SD progress:', e); }
+        }
+
+        const dbmsCompleted = localStorage.getItem('dbmsCourseProgress');
+        if (dbmsCompleted) {
+            try {
+                const completedLessons = JSON.parse(dbmsCompleted);
+                const totalLessons = getDbmsTotalLessons();
+                setDBMSProgress(Math.round((completedLessons.length / totalLessons) * 100));
+            } catch (e) { console.error('Failed to parse DBMS progress:', e); }
+        }
+    }, []);
+
+    // Fetch streak
+    useEffect(() => {
+        const fetchStreak = async () => {
+            try {
+                const res = await fetch(`${API_URL}/profile/streak`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.success) setStreak(data.data.currentStreak || 0);
+            } catch (error) { console.error('Failed to fetch streak:', error); }
+        };
+        if (token) fetchStreak();
+    }, [token]);
+
+    const getGreeting = () => {
+        const hour = new Date().getHours();
+        if (hour < 12) return 'Suprabhat';
+        if (hour < 17) return 'Namaskar';
+        return 'Shubh Sandhya';
     };
-
-    if (!loading && !isAuthenticated) {
-        window.location.href = '/login';
-        return null;
-    }
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
-                <div className="text-orange-500 text-xl">Loading...</div>
-            </div>
-        );
-    }
 
     const userName = user?.name?.split(' ')[0] || 'Babua';
 
+    // Course data with dynamic progress
+    const courses = [
+        {
+            id: 'dsa',
+            name: 'Data Structures & Algorithms',
+            description: 'Master Graphs, Trees, and DP. Placement ka Raja!',
+            icon: Grid3X3,
+            color: 'from-orange-500 to-yellow-500',
+            bgGlow: 'bg-orange-500/20',
+            startLink: '/dsa-shuru-karein',
+            syllabusLink: '/syllabus/dsa',
+            progress: 0,
+            badge: '🔥 HOT',
+            featured: true,
+        },
+        {
+            id: 'system-design',
+            name: 'System Design',
+            description: 'HLD & LLD: Zero se Million users tak scale karo.',
+            icon: Server,
+            color: 'from-purple-500 to-pink-500',
+            bgGlow: 'bg-purple-500/20',
+            startLink: '/system-design',
+            syllabusLink: '/system-design-syllabus',
+            progress: sdProgress,
+            badge: '⚡ NEW',
+        },
+        {
+            id: 'dbms',
+            name: 'DBMS',
+            description: 'SQL, Normalization & ACID. Data ka backbone.',
+            icon: Database,
+            color: 'from-emerald-500 to-teal-500',
+            bgGlow: 'bg-emerald-500/20',
+            startLink: '/dbms',
+            syllabusLink: '/dbms-syllabus',
+            progress: dbmsProgress,
+            badge: '📚 COMPLETE',
+        },
+    ];
+
+    const comingSoonCourses = [
+        { name: 'Computer Networks', icon: Network, emoji: '🌐' },
+        { name: 'Operating Systems', icon: Cpu, emoji: '⚙️' },
+        { name: 'AI / ML', icon: Brain, emoji: '🤖' },
+    ];
 
     return (
-        <div className="min-h-screen bg-[#0f0f0f]">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #1f2937 0%, #374151 30%, #1f2937 60%, #111827 100%)' }}>
+            {/* Animated 3D Background */}
+            <AnimatedBackground />
+
+            {/* Gradient Orbs - Stone Grey + Moss Green */}
+            <div className="fixed top-0 right-0 w-96 h-96 bg-gray-500/15 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+            <div className="fixed bottom-0 left-0 w-80 h-80 bg-lime-500/15 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
+            <div className="fixed top-1/2 left-1/4 w-72 h-72 bg-green-600/10 rounded-full blur-3xl -translate-y-1/2 pointer-events-none"></div>
+            <div className="fixed bottom-1/4 right-1/4 w-64 h-64 bg-gray-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
             {/* Top Navigation */}
-            <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-50">
+            <header className="relative z-50 bg-gray-800/90 backdrop-blur-md border-b border-gray-600/30 sticky top-0">
                 <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center gap-6">
-                        {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                                <span className="text-white font-bold text-xl">🎯</span>
-                            </div>
-                            <div className="hidden md:block">
-                                <div className="font-bold text-white">BABUA <span className="text-orange-500">BPL</span></div>
-                                <div className="text-[10px] text-gray-500 uppercase tracking-widest">Humara Platform</div>
-                            </div>
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <div className="w-10 h-10 bg-gradient-to-br from-lime-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg shadow-lime-500/20 group-hover:scale-110 transition-all">
+                            <img src="/favicon.png" alt="Adhyaya Logo" className="w-6 h-6 object-contain" />
+                        </div>
+                        <div className="hidden md:block">
+                            <div className="font-bold text-white">ADHYAYA</div>
+                            <div className="text-[10px] text-gray-400 uppercase tracking-widest">Humara Platform</div>
+                        </div>
+                    </Link>
+
+                    <nav className="hidden md:flex items-center gap-1 px-2 py-1 bg-gray-700/50 border border-gray-600/50 rounded-full backdrop-blur">
+                        <Link to="/dashboard" className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-gradient-to-r from-lime-500 to-green-600 text-white shadow-lg shadow-lime-500/20">
+                            <Home className="w-4 h-4" />
+                            Dashboard
                         </Link>
+                        <Link to="/mock-interview" className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-lime-400 hover:bg-gray-600/50 transition-all">
+                            <Mic className="w-4 h-4" />
+                            Mock Interview
+                        </Link>
+                        <Link to="/how-to-earn" className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-gray-300 hover:text-lime-400 hover:bg-gray-600/50 transition-all">
+                            <Gift className="w-4 h-4" />
+                            Rewards
+                        </Link>
+                    </nav>
 
-                        {/* Nav Links */}
-                        <nav className="hidden md:flex items-center gap-1">
-                            {navItems.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    to={item.href}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${item.active
-                                        ? 'bg-orange-500 text-white'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                        }`}
-                                >
-                                    <item.icon className="w-4 h-4" />
-                                    {item.name}
-                                </Link>
-                            ))}
-                        </nav>
-                    </div>
-
-                    {/* Right side */}
                     <div className="flex items-center gap-4">
-                        <button className="relative text-gray-400 hover:text-white p-2">
+                        <button className="relative text-gray-400 hover:text-lime-400 p-2 transition-colors">
                             <Bell className="w-5 h-5" />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-lime-400 rounded-full animate-pulse"></span>
                         </button>
-                        <Link to="/profile" className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer">
+                        <Link to="/profile" className="flex items-center gap-3 group">
                             <div className="text-right hidden md:block">
                                 <div className="text-white font-medium text-sm">{userName} Bhaiya</div>
-                                <div className="text-green-500 text-xs flex items-center gap-1 justify-end">
-                                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                <div className="text-lime-400 text-xs flex items-center gap-1 justify-end">
+                                    <span className="w-1.5 h-1.5 bg-lime-400 rounded-full animate-pulse"></span>
                                     ONLINE
                                 </div>
                             </div>
-                            <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                            <div className="w-10 h-10 bg-gradient-to-br from-lime-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg shadow-lime-500/20 group-hover:scale-110 transition-transform ring-2 ring-lime-400/30">
                                 {userName.charAt(0)}
                             </div>
                         </Link>
@@ -256,204 +299,177 @@ export default function Dashboard() {
                 </div>
             </header>
 
-            <main className="container mx-auto px-4 py-6">
-                {/* Greeting Section */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-bold text-white flex items-center gap-2">
-                            <span className="text-2xl">🙏</span>
-                            Pranam, {userName} Babua!
-                        </h1>
-                        <p className="text-gray-400 mt-1 flex items-center gap-2">
-                            Ka haal ba? Aaj kuch bada ukhada jaye! <span className="text-xl">💪</span>
-                        </p>
+            {/* Main Content */}
+            <main className="relative z-10 container mx-auto px-4 py-8">
+                {/* Hero Section */}
+                <div className="text-center mb-12">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-700/50 border border-lime-500/30 rounded-full text-lime-400 text-sm mb-6">
+                        <Sparkles className="w-4 h-4" />
+                        Live Learning Platform
+                        <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></span>
                     </div>
-                    <Link
-                        to="/daily-challenge"
-                        className="inline-flex items-center gap-3 bg-[#1a1a1a] border border-gray-800 rounded-2xl px-5 py-3 hover:border-orange-500/50 transition-colors group"
-                    >
-                        <div className="w-10 h-10 bg-orange-500/20 rounded-xl flex items-center justify-center group-hover:bg-orange-500/30 transition-colors">
-                            <span className="text-xl">🎯</span>
-                        </div>
-                        <div>
-                            <div className="text-xs text-gray-500">Aaj Ka Challenge</div>
-                            <div className="text-orange-500 font-bold">Daily Streak Banayein</div>
-                        </div>
-                    </Link>
-                </div>
 
-                {/* Stats Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    {statsCards.map((stat, index) => {
-                        const IconComponent = stat.icon;
-                        return (
-                            <div
-                                key={index}
-                                className={`bg-[#1a1a1a] rounded-2xl p-5 border-l-4 ${stat.borderColor}`}
-                            >
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className={`w-10 h-10 ${stat.iconBg} rounded-xl flex items-center justify-center`}>
-                                        <IconComponent className={`w-5 h-5 ${stat.iconColor}`} />
-                                    </div>
-                                    <div>
-                                        <div className="text-xs text-gray-500 uppercase tracking-wider">{stat.label}</div>
-                                        <div className="text-2xl font-bold text-white">{stat.value}</div>
-                                    </div>
-                                </div>
-                                <div className={`text-xs ${stat.subtitleColor}`}>{stat.subtitle}</div>
+                    <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
+                        <span className="text-white">{getGreeting()}, </span>
+                        <span className="text-lime-400">{userName}!</span>
+                    </h1>
+
+                    <p className="text-gray-400 text-lg max-w-xl mx-auto mb-6">
+                        "{randomQuote.text}" <span className="text-gray-500">— {randomQuote.author}</span>
+                    </p>
+
+                    {/* Stats Row */}
+                    <div className="flex flex-wrap justify-center gap-6 mb-8">
+                        <div className="flex items-center gap-3 px-5 py-3 bg-gray-700/40 backdrop-blur border border-gray-600/40 rounded-2xl hover:border-lime-500/40 hover:bg-gray-700/60 transition-all group">
+                            <div className="w-12 h-12 bg-gradient-to-br from-lime-500 to-green-600 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all shadow-lg shadow-lime-500/20">
+                                <Flame className="w-6 h-6 text-white" />
                             </div>
-                        );
-                    })}
-                </div>
-
-                {/* Current Course & Subject Progress */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    {/* Current Course - Takes 2 columns */}
-                    <div className="lg:col-span-2 bg-[#1a1a1a] rounded-3xl p-6 border border-gray-800 relative overflow-hidden">
-                        {/* Background gradient */}
-                        <div className={`absolute top-0 right-0 w-1/2 h-full opacity-10 bg-gradient-to-l ${featuredCourse.gradientFrom} ${featuredCourse.gradientTo}`}></div>
-
-                        <div className="relative">
-                            <div className="flex flex-wrap items-center gap-3 mb-4">
-                                <span className="bg-[#2a2a2a] text-gray-300 px-3 py-1 rounded-full text-xs font-medium">
-                                    ABHI CHAL RAHA HAI
-                                </span>
-                                {featuredCourse.progress > 0 && (
-                                    <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                        Garma Garam
-                                    </span>
-                                )}
-                                {featuredCourse.progress === 0 && (
-                                    <span className="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-full text-xs font-medium">
-                                        Naya Course
-                                    </span>
-                                )}
-                            </div>
-
-                            <div className="flex items-center gap-3 mb-3">
-                                <div className={`w-12 h-12 ${featuredCourse.iconBg} rounded-xl flex items-center justify-center`}>
-                                    <featuredCourse.icon className={`w-6 h-6 ${featuredCourse.iconColor}`} />
-                                </div>
-                                <h2 className="text-2xl md:text-3xl font-bold">
-                                    <span className="text-white">{featuredCourse.title.split(' ').slice(0, -1).join(' ')} </span>
-                                    <span className={featuredCourse.iconColor}>{featuredCourse.title.split(' ').slice(-1)}</span>
-                                </h2>
-                            </div>
-
-                            <p className="text-gray-400 text-sm mb-2">{featuredCourse.fullDescription}</p>
-
-                            <div className="flex items-center gap-2 text-gray-400 mb-6">
-                                <Play className="w-4 h-4 text-orange-500" fill="currentColor" />
-                                <span>{featuredCourse.currentLesson}</span>
-                            </div>
-
-                            <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                <div className="flex-1">
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="text-gray-400">Progress</span>
-                                        <span className={`font-bold ${featuredCourse.iconColor}`}>{featuredCourse.progress}%</span>
-                                    </div>
-                                    <div className="h-3 bg-gray-800 rounded-full overflow-hidden">
-                                        <div
-                                            className={`h-full bg-gradient-to-r ${featuredCourse.gradientFrom} ${featuredCourse.gradientTo} rounded-full transition-all duration-500`}
-                                            style={{ width: `${featuredCourse.progress}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                                <Link
-                                    to={`/${featuredCourse.id}`}
-                                    className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black font-semibold rounded-xl hover:bg-gray-100 transition-colors"
-                                >
-                                    <Play className="w-4 h-4" fill="currentColor" />
-                                    {featuredCourse.progress > 0 ? 'Jari Rakho' : 'Shuru Karo'}
-                                </Link>
+                            <div className="text-left">
+                                <div className="text-2xl font-bold text-white">{streak}</div>
+                                <div className="text-xs text-lime-400/60 uppercase">Day Streak 🔥</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Padhai-Likhai Section */}
-                <div className="mt-8">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                                <BookOpen className="w-5 h-5 text-orange-500" />
-                                Padhai-Likhai
-                            </h2>
-                            <p className="text-gray-500 text-sm">Click "Explore" to switch course above</p>
-                        </div>
-                        <Link
-                            to="/padhai-zone"
-                            className="text-orange-500 text-sm hover:underline"
-                        >
-                            Sab Dekho →
-                        </Link>
-                    </div>
+                {/* Featured DSA Course */}
+                <div className="mb-8">
+                    <div className="relative group">
+                        {/* Glow Effect */}
+                        <div className="absolute -inset-1 bg-gradient-to-r from-lime-500/20 via-green-600/15 to-lime-500/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-80 transition-opacity duration-500"></div>
 
-                    {/* Subject Cards Grid - Dynamic */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {otherCourses.map((course) => {
-                            const IconComponent = course.icon;
-                            const getProgressLabel = (p) => {
-                                if (p === 0) return { text: 'Shuru Nahi', color: 'text-gray-500' };
-                                if (p < 25) return { text: 'Abhi Shuru', color: 'text-red-400' };
-                                if (p < 50) return { text: 'Halfway', color: 'text-yellow-400' };
-                                if (p < 75) return { text: 'Aadha Se Zyada', color: 'text-blue-400' };
-                                return { text: 'Almost Done!', color: 'text-green-400' };
-                            };
-                            const progressInfo = getProgressLabel(course.progress);
+                        <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl border border-lime-500/20 overflow-hidden group-hover:border-lime-500/40 transition-all duration-500 group-hover:scale-[1.01]"
+                            style={{ boxShadow: '0 0 40px rgba(132, 204, 22, 0.1)' }}>
+                            {/* Animated gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-lime-500/5 via-transparent to-green-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                            return (
-                                <div
-                                    key={course.id}
-                                    className="bg-[#151515] rounded-2xl p-5 border border-gray-800 hover:border-gray-700 transition-all duration-300 group"
-                                >
-                                    <div className="flex items-start justify-between mb-3">
-                                        <div className={`w-10 h-10 ${course.iconBg} rounded-xl flex items-center justify-center`}>
-                                            <IconComponent className={`w-5 h-5 ${course.iconColor}`} />
-                                        </div>
-                                        <div className="text-right">
-                                            <span className={`text-lg font-bold ${course.progress > 0 ? course.iconColor : 'text-gray-600'}`}>
-                                                {course.progress}%
+                            <div className="relative p-8 md:p-10">
+                                <div className="flex flex-wrap items-start justify-between gap-6">
+                                    <div className="flex-1 min-w-[280px]">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <span className="px-3 py-1 bg-gradient-to-r from-lime-500 to-green-600 text-white text-xs font-bold rounded-full shadow-lg shadow-lime-500/30">
+                                                🔥 PLACEMENT ESSENTIAL
                                             </span>
-                                            <p className={`text-[10px] ${progressInfo.color}`}>{progressInfo.text}</p>
+                                            <span className="flex items-center gap-1.5 text-gray-400 text-sm">
+                                                <Zap className="w-4 h-4 text-lime-400" />
+                                                45h content
+                                            </span>
+                                        </div>
+
+                                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                                            Data Structures & <span className="text-lime-400">Algorithms</span>
+                                        </h2>
+
+                                        <p className="text-gray-400 mb-6 max-w-lg">
+                                            Master Graphs, Trees, and DP. The single most important subject for cracking interviews at Google, Amazon, Microsoft, and more!
+                                        </p>
+
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            <Link to="/dsa-shuru-karein" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-lime-500 to-green-600 text-white font-bold rounded-full hover:scale-105 transition-transform shadow-lg shadow-lime-500/30">
+                                                <Play className="w-5 h-5" fill="currentColor" />
+                                                Shuru Karein
+                                            </Link>
+                                            <Link to="/syllabus/dsa" className="inline-flex items-center gap-2 px-6 py-3 bg-gray-700/60 text-white font-semibold rounded-full border border-gray-600 hover:bg-gray-700 hover:border-lime-500/30 hover:scale-105 transition-all">
+                                                <BookOpen className="w-5 h-5" />
+                                                Syllabus
+                                            </Link>
                                         </div>
                                     </div>
 
-                                    <h3 className="text-base font-bold text-white mb-1">{course.shortTitle}</h3>
-                                    <p className="text-gray-500 text-xs leading-relaxed mb-3">{course.description}</p>
-
-                                    {/* Progress Bar */}
-                                    <div className="h-2 bg-gray-800 rounded-full mb-4 overflow-hidden">
-                                        <div
-                                            className={`h-full rounded-full ${course.progressColor} transition-all duration-500`}
-                                            style={{ width: `${course.progress}%` }}
-                                        ></div>
-                                    </div>
-
-                                    {/* Action Buttons */}
-                                    <div className="flex gap-2">
-                                        <Link
-                                            to={`/padhai-zone/${course.id}/syllabus`}
-                                            className="flex-1 py-2 text-center text-xs font-medium bg-[#2a2a2a] text-gray-300 rounded-lg border border-gray-700 hover:border-gray-600 hover:text-white transition-colors"
-                                        >
-                                            📖 Syllabus
-                                        </Link>
-                                        <button
-                                            onClick={() => handleExploreCourse(course.id)}
-                                            className="flex-1 py-2 text-center text-xs font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-orange-500/20 transition-all flex items-center justify-center gap-1"
-                                        >
-                                            <ArrowUp className="w-3 h-3" />
-                                            Explore
-                                        </button>
+                                    {/* Progress Circle */}
+                                    <div className="relative w-32 h-32">
+                                        <svg className="w-full h-full -rotate-90">
+                                            <circle cx="64" cy="64" r="56" stroke="rgba(75, 85, 99, 0.4)" strokeWidth="8" fill="none" />
+                                            <circle cx="64" cy="64" r="56" stroke="url(#progressGrad)" strokeWidth="8" fill="none" strokeLinecap="round"
+                                                strokeDasharray={`${courses[0].progress * 3.51} 351`} />
+                                            <defs>
+                                                <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                                    <stop offset="0%" stopColor="#84cc16" />
+                                                    <stop offset="100%" stopColor="#16a34a" />
+                                                </linearGradient>
+                                            </defs>
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            <div className="text-center">
+                                                <span className="text-2xl font-bold text-white">{courses[0].progress}%</span>
+                                                <p className="text-xs text-gray-500">Complete</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            );
-                        })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Other Courses Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    {courses.slice(1).map((course, idx) => (
+                        <div key={course.id} className="group relative">
+                            {/* Glow */}
+                            <div className={`absolute -inset-0.5 ${course.bgGlow} rounded-2xl blur-lg opacity-0 group-hover:opacity-50 transition-opacity duration-300`}></div>
+
+                            <div className="relative bg-gray-800/60 backdrop-blur rounded-2xl border border-gray-700/50 p-6 hover:border-lime-500/30 transition-all duration-300 group-hover:scale-[1.02] group-hover:bg-gray-800/80">
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`w-14 h-14 bg-gradient-to-br ${course.color} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-all`}>
+                                        <course.icon className="w-7 h-7 text-white" />
+                                    </div>
+                                    <span className="text-xs font-bold px-2 py-1 bg-gray-700/60 text-gray-300 rounded-full">{course.badge}</span>
+                                </div>
+
+                                <h3 className="text-xl font-bold text-white mb-2">{course.name}</h3>
+                                <p className="text-gray-400 text-sm mb-4">{course.description}</p>
+
+                                {/* Progress */}
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="flex-1 h-2 bg-gray-700 rounded-full overflow-hidden">
+                                        <div className={`h-full bg-gradient-to-r ${course.color} rounded-full transition-all duration-500`} style={{ width: `${course.progress}%` }}></div>
+                                    </div>
+                                    <span className="text-sm text-gray-400">{course.progress}%</span>
+                                </div>
+
+                                <div className="flex items-center gap-3">
+                                    <Link to={course.startLink} className={`flex items-center gap-2 px-4 py-2 bg-gradient-to-r ${course.color} text-white text-sm font-semibold rounded-full hover:scale-105 transition-transform shadow-lg`}>
+                                        <Play className="w-4 h-4" fill="currentColor" />
+                                        Start
+                                    </Link>
+                                    <Link to={course.syllabusLink} className="flex items-center gap-2 px-4 py-2 bg-gray-700/60 text-white text-sm font-medium rounded-full hover:bg-gray-700 transition-colors">
+                                        <BookOpen className="w-4 h-4" />
+                                        Syllabus
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Coming Soon */}
+                <div className="bg-gray-800/50 backdrop-blur rounded-2xl border border-gray-700/50 p-6 mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                        <Lock className="w-5 h-5 text-lime-500/60" />
+                        <span className="text-gray-400 font-medium">JALDI AANE WALA (Coming Soon)</span>
+                    </div>
+                    <div className="flex flex-wrap gap-4">
+                        {comingSoonCourses.map((course) => (
+                            <div key={course.name} className="flex items-center gap-3 px-4 py-3 bg-gray-700/30 rounded-xl border border-gray-600/30 opacity-60 hover:opacity-100 hover:bg-gray-700/50 hover:border-lime-500/20 transition-all cursor-pointer">
+                                <span className="text-2xl">{course.emoji}</span>
+                                <span className="text-gray-300 font-medium">{course.name}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </main>
+
+            {/* Footer */}
+            <Footer transparent />
+
+            {/* Floating Chai Tapri Button - Links directly to page */}
+            <Link
+                to="/chai-tapri"
+                className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-br from-lime-500 to-green-600 rounded-full flex items-center justify-center shadow-lg shadow-lime-500/30 hover:scale-110 transition-all z-50 group"
+            >
+                <span className="text-2xl group-hover:animate-bounce">☕</span>
+            </Link>
         </div>
     );
 }

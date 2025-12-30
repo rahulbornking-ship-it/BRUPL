@@ -1,0 +1,417 @@
+import { useState, useRef, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { io } from 'socket.io-client';
+import {
+    Hash, Search, Pin, Info, Send, Paperclip, Settings,
+    MessageSquare, Megaphone, Code, Server, Database, Briefcase,
+    Coffee, Users, ArrowLeft
+} from 'lucide-react';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000';
+
+// Mock channels data
+const channels = {
+    community: [
+        { id: 'announcements', name: 'Announcements', icon: Megaphone, hasNotification: false },
+        { id: 'general', name: 'General Discussion', icon: MessageSquare },
+    ],
+    learning: [
+        { id: 'dsa', name: 'DSA Help', icon: Code },
+        { id: 'system-design', name: 'System Design Help', icon: Server },
+        { id: 'dbms', name: 'DBMS Help', icon: Database },
+        { id: 'career', name: 'Career Advice', icon: Briefcase },
+    ],
+};
+
+const channelDescriptions = {
+    'dsa': 'Discuss Data Structures & Algorithms problems, LeetCode solutions, and optimization.',
+    'system-design': 'Share system design concepts, architecture patterns, and interview prep.',
+    'dbms': 'Database design, SQL queries, normalization, and more.',
+    'career': 'Interview tips, resume reviews, and career guidance.',
+    'announcements': 'Important updates from the ADHYAYA team.',
+    'general': 'Off-topic discussions, introductions, and community bonding.',
+};
+
+// Avatar colors based on user name
+const getAvatarColor = (name) => {
+    const colors = [
+        'from-amber-500 to-orange-600',
+        'from-emerald-500 to-teal-600',
+        'from-violet-500 to-purple-600',
+        'from-blue-500 to-cyan-600',
+        'from-pink-500 to-rose-600',
+        'from-lime-500 to-green-600',
+    ];
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+};
+
+// Format time for display
+const formatTime = (date) => {
+    const d = new Date(date);
+    return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+};
+
+export default function ChaiTapri() {
+    const { user, token } = useAuth();
+    const [activeChannel, setActiveChannel] = useState('general');
+    const [messages, setMessages] = useState([]);
+    const [message, setMessage] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [onlineCount, setOnlineCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [socket, setSocket] = useState(null);
+    const messagesEndRef = useRef(null);
+
+    const userName = user?.name || 'Guest';
+    const userInitials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+    // Get active channel info
+    const getActiveChannelInfo = () => {
+        for (const category of Object.values(channels)) {
+            const found = category.find(c => c.id === activeChannel);
+            if (found) return found;
+        }
+        return channels.learning[0];
+    };
+
+    const channelInfo = getActiveChannelInfo();
+
+    // Initialize Socket.io
+    useEffect(() => {
+        const newSocket = io(SOCKET_URL, {
+            transports: ['websocket', 'polling'],
+        });
+
+        newSocket.on('connect', () => {
+            console.log('Connected to chat server');
+            newSocket.emit('join-chat', activeChannel);
+        });
+
+        newSocket.on('new-message', (msg) => {
+            setMessages(prev => [...prev, msg]);
+        });
+
+        newSocket.on('user-joined', ({ count }) => {
+            setOnlineCount(count);
+        });
+
+        newSocket.on('user-left', ({ count }) => {
+            setOnlineCount(count);
+        });
+
+        setSocket(newSocket);
+
+        return () => {
+            newSocket.emit('leave-chat', activeChannel);
+            newSocket.disconnect();
+        };
+    }, []);
+
+    // Change channel
+    useEffect(() => {
+        if (socket) {
+            // Leave old channel and join new
+            socket.emit('leave-chat', activeChannel);
+            socket.emit('join-chat', activeChannel);
+        }
+        fetchMessages();
+    }, [activeChannel, socket]);
+
+    // Fetch messages from API
+    const fetchMessages = async () => {
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_URL}/chat/${activeChannel}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (data.success) {
+                setMessages(data.messages);
+            }
+        } catch (error) {
+            console.error('Error fetching messages:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Send message
+    const sendMessage = async () => {
+        if (!message.trim() || !token) return;
+
+        try {
+            const response = await fetch(`${API_URL}/chat`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    channel: activeChannel,
+                    content: message.trim()
+                })
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                setMessage('');
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+        }
+    };
+
+    // Handle Enter key
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
+    // Scroll to bottom when new messages arrive
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages]);
+
+    return (
+        <div className="h-screen flex" style={{ background: 'linear-gradient(135deg, #1a1410 0%, #2d241c 50%, #1a1410 100%)' }}>
+            {/* Left Sidebar */}
+            <div className="w-64 bg-gradient-to-b from-[#1e1814] to-[#15110e] border-r border-amber-900/30 flex flex-col">
+                {/* Logo */}
+                <div className="p-4 border-b border-amber-900/30">
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                            <Coffee className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <div className="font-bold text-white">Chai Tapri</div>
+                            <div className="text-xs text-amber-600/60">Community Hub</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Channels */}
+                <div className="flex-1 overflow-y-auto py-4 px-3">
+                    {/* Community Section */}
+                    <div className="mb-6">
+                        <div className="text-xs font-bold text-amber-600/50 uppercase tracking-wider px-2 mb-2">
+                            Community
+                        </div>
+                        {channels.community.map((channel) => {
+                            const Icon = channel.icon;
+                            return (
+                                <button
+                                    key={channel.id}
+                                    onClick={() => setActiveChannel(channel.id)}
+                                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg mb-1 transition-all ${activeChannel === channel.id
+                                        ? 'bg-amber-600/20 text-amber-400'
+                                        : 'text-amber-100/60 hover:bg-amber-900/20 hover:text-amber-100'
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    <span className="text-sm font-medium">{channel.name}</span>
+                                    {channel.hasNotification && (
+                                        <span className="w-2 h-2 bg-amber-500 rounded-full ml-auto animate-pulse"></span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Learning Channels Section */}
+                    <div>
+                        <div className="text-xs font-bold text-amber-600/50 uppercase tracking-wider px-2 mb-2">
+                            Learning Channels
+                        </div>
+                        {channels.learning.map((channel) => {
+                            const Icon = channel.icon;
+                            return (
+                                <button
+                                    key={channel.id}
+                                    onClick={() => setActiveChannel(channel.id)}
+                                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg mb-1 transition-all ${activeChannel === channel.id
+                                        ? 'bg-amber-600/20 text-amber-400 border-l-2 border-amber-500'
+                                        : 'text-amber-100/60 hover:bg-amber-900/20 hover:text-amber-100'
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    <span className="text-sm font-medium">{channel.name}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* User Profile */}
+                <div className="p-3 border-t border-amber-900/30">
+                    <div className="flex items-center gap-3 p-2 rounded-xl bg-amber-900/20 hover:bg-amber-900/30 transition-colors cursor-pointer">
+                        <div className={`w-10 h-10 bg-gradient-to-br ${getAvatarColor(userName)} rounded-full flex items-center justify-center text-white font-bold text-sm ring-2 ring-amber-500/30`}>
+                            {userInitials}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <div className="text-white font-medium text-sm truncate">{userName}</div>
+                            <div className="text-amber-600/60 text-xs">Student • Active Now</div>
+                        </div>
+                        <button className="text-amber-600/50 hover:text-amber-400 transition-colors">
+                            <Settings className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main Chat Area */}
+            <div className="flex-1 flex flex-col">
+                {/* Channel Header */}
+                <div className="bg-[#1e1814]/80 backdrop-blur border-b border-amber-900/30 px-6 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Hash className="w-5 h-5 text-amber-400" />
+                        <div>
+                            <div className="font-bold text-white">{channelInfo.name}</div>
+                            <div className="text-amber-100/40 text-sm">{channelDescriptions[activeChannel]}</div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        {/* Search */}
+                        <div className="relative">
+                            <Search className="w-4 h-4 text-amber-600/50 absolute left-3 top-1/2 -translate-y-1/2" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search in channel..."
+                                className="bg-amber-900/30 border border-amber-800/30 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-amber-600/40 focus:outline-none focus:ring-1 focus:ring-amber-500/50 w-48"
+                            />
+                        </div>
+                        <button className="text-amber-600/50 hover:text-amber-400 transition-colors p-2">
+                            <Pin className="w-5 h-5" />
+                        </button>
+                        <button className="text-amber-600/50 hover:text-amber-400 transition-colors p-2">
+                            <Info className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Messages Area */}
+                <div className="flex-1 overflow-y-auto px-6 py-4">
+                    {/* Online Users Banner */}
+                    <div className="flex items-center justify-center gap-2 mb-6">
+                        <span className="text-amber-600/50 text-sm flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            <span className="w-2 h-2 bg-lime-400 rounded-full animate-pulse"></span>
+                            {onlineCount || 1} member{onlineCount !== 1 ? 's' : ''} online
+                        </span>
+                    </div>
+
+                    {/* Date Separator */}
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-800/30 to-transparent"></div>
+                        <span className="text-amber-600/50 text-xs font-medium px-3 py-1 bg-amber-900/30 rounded-full">Today</span>
+                        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-amber-800/30 to-transparent"></div>
+                    </div>
+
+                    {/* Loading State */}
+                    {loading ? (
+                        <div className="flex items-center justify-center py-10">
+                            <div className="animate-spin w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full"></div>
+                        </div>
+                    ) : messages.length === 0 ? (
+                        <div className="text-center py-10">
+                            <div className="text-4xl mb-3">☕</div>
+                            <p className="text-amber-600/60">No messages yet. Be the first to say hi!</p>
+                        </div>
+                    ) : (
+                        /* Messages */
+                        <div className="space-y-4">
+                            {messages.map((msg) => {
+                                const msgUserName = msg.user?.name || 'Anonymous';
+                                const msgInitials = msgUserName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+
+                                return (
+                                    <div key={msg._id} className="flex gap-4 group hover:bg-amber-900/10 p-3 -mx-3 rounded-xl transition-colors">
+                                        {/* Avatar */}
+                                        <div className={`w-10 h-10 bg-gradient-to-br ${getAvatarColor(msgUserName)} rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0`}>
+                                            {msgInitials}
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0">
+                                            {/* Header */}
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="font-bold text-white">{msgUserName}</span>
+                                                <span className="text-amber-600/40 text-xs">{formatTime(msg.createdAt)}</span>
+                                            </div>
+
+                                            {/* Message Content */}
+                                            <p className="text-amber-100/80 leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+
+                                            {/* Code Block */}
+                                            {msg.code && msg.code.content && (
+                                                <div className="mt-3 bg-[#0d0a08] rounded-xl border border-amber-900/30 overflow-hidden">
+                                                    <div className="flex items-center justify-between px-4 py-2 border-b border-amber-900/30 bg-amber-900/10">
+                                                        <span className="text-amber-500 text-xs font-medium">{msg.code.language || 'code'}</span>
+                                                    </div>
+                                                    <pre className="p-4 text-sm overflow-x-auto">
+                                                        <code className="text-amber-100/70 font-mono">{msg.code.content}</code>
+                                                    </pre>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                </div>
+
+                {/* Message Input */}
+                <div className="bg-[#1e1814]/80 backdrop-blur border-t border-amber-900/30 px-6 py-4">
+                    <div className="max-w-4xl mx-auto">
+                        <div className="relative">
+                            <input
+                                type="text"
+                                value={message}
+                                onChange={(e) => setMessage(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder={token ? "Ask a question or help someone..." : "Login to send messages"}
+                                disabled={!token}
+                                className="w-full bg-amber-900/20 border border-amber-800/30 rounded-xl pl-4 pr-24 py-4 text-white placeholder-amber-600/40 focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-600/50 transition-all disabled:opacity-50"
+                            />
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                <button className="text-amber-600/50 hover:text-amber-400 p-2 transition-colors">
+                                    <Paperclip className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={sendMessage}
+                                    disabled={!token || !message.trim()}
+                                    className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white p-2.5 rounded-lg transition-all hover:scale-105 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                    <Send className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="text-amber-600/40 text-xs mt-2 px-1">
+                            <span className="text-amber-500">Enter</span> to send. <span className="text-amber-500">Shift + Enter</span> for new line. Markdown supported.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Back to Dashboard Button */}
+            <Link
+                to="/dashboard"
+                className="fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/30 hover:scale-110 transition-all z-50 group"
+                title="Back to Dashboard"
+            >
+                <ArrowLeft className="w-6 h-6 text-white group-hover:-translate-x-1 transition-transform" />
+            </Link>
+        </div>
+    );
+}

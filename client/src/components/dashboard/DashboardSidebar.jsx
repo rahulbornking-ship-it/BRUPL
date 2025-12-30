@@ -15,8 +15,6 @@ const navItems = [
         section: 'APNA ADDA',
         items: [
             { name: 'Dashboardwa', href: '/dashboard', icon: Home },
-            { name: 'Padhai-Likhai', href: '/padhai-zone', icon: BookOpen },
-            { name: 'Coding Akhaada', href: '/problems', icon: Code2 },
             { name: 'Imtihaan (Tests)', href: '/revisions', icon: ClipboardCheck },
         ]
     },
@@ -44,11 +42,10 @@ export default function DashboardSidebar() {
             <div className="p-6">
                 <Link to="/" className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl flex items-center justify-center">
-                        <span className="text-xl">🎯</span>
+                        <img src="/favicon.png" alt="Adhyaya Logo" className="w-6 h-6 object-contain" />
                     </div>
                     <div>
-                        <span className="text-lg font-bold text-orange-500">BABUA</span>
-                        <span className="text-lg font-bold text-blue-400">BPL</span>
+                        <span className="text-lg font-bold text-orange-500">ADHYAYA</span>
                         <p className="text-[10px] text-gray-500 -mt-1">HUMARA PLATFORM</p>
                     </div>
                 </Link>

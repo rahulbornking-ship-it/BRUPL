@@ -1,4 +1,5 @@
 import User from '../../models/User.js';
+import Activity from '../../models/Activity.js';
 import leetcodeService from '../services/leetcodeService.js';
 
 /**
@@ -62,6 +63,154 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to update profile'
+        });
+    }
+};
+
+/**
+ * Record activity (video watched, quiz taken, etc.)
+ * This also updates the streak
+ */
+export const recordActivity = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { type, metadata } = req.body;
+
+        if (!type) {
+            return res.status(400).json({
+                success: false,
+                message: 'Activity type is required'
+            });
+        }
+
+        // Check if user was active today before recording
+        const wasActiveToday = await Activity.wasActiveToday(userId);
+
+        // Record the activity
+        const activity = await Activity.recordActivity(userId, type, metadata || {});
+
+        // Update streak only if this is the first activity today
+        if (!wasActiveToday) {
+            const user = await User.findById(userId);
+
+            const now = new Date();
+            now.setHours(0, 0, 0, 0);
+
+            const lastActive = new Date(user.lastActive);
+            lastActive.setHours(0, 0, 0, 0);
+
+            const diffDays = Math.floor((now - lastActive) / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+                // Consecutive day - increase streak
+                user.streakCount += 1;
+                if (user.streakCount > user.longestStreak) {
+                    user.longestStreak = user.streakCount;
+                }
+            } else if (diffDays > 1) {
+                // Streak broken, start new streak
+                user.streakCount = 1;
+            } else if (diffDays === 0) {
+                // Same day, ensure streak is at least 1
+                if (user.streakCount === 0) {
+                    user.streakCount = 1;
+                }
+            }
+
+            user.lastActive = new Date();
+            await user.save();
+        }
+
+        // Get updated user for response
+        const updatedUser = await User.findById(userId).select('streakCount longestStreak lastActive');
+
+        res.json({
+            success: true,
+            data: {
+                activity,
+                streak: {
+                    current: updatedUser.streakCount,
+                    longest: updatedUser.longestStreak
+                }
+            },
+            message: 'Activity recorded successfully'
+        });
+    } catch (error) {
+        console.error('Record activity error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to record activity'
+        });
+    }
+};
+
+/**
+ * Get activity calendar data for the past year
+ */
+export const getActivityCalendar = async (req, res) => {
+    try {
+        const userId = req.user.id;
+
+        // Get all activities for the past year
+        const activities = await Activity.getYearActivity(userId);
+
+        // Get user streak info
+        const user = await User.findById(userId).select('streakCount longestStreak lastActive');
+
+        // Create a map of date -> count for easy lookup
+        const activityMap = {};
+        let totalSubmissions = 0;
+        let activeDays = 0;
+
+        activities.forEach(activity => {
+            const dateStr = activity.date.toISOString().split('T')[0];
+            activityMap[dateStr] = activity.count;
+            totalSubmissions += activity.count;
+            if (activity.count > 0) activeDays++;
+        });
+
+        res.json({
+            success: true,
+            data: {
+                activities: activityMap,
+                stats: {
+                    totalSubmissions,
+                    activeDays,
+                    currentStreak: user.streakCount,
+                    longestStreak: user.longestStreak
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get activity calendar error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch activity calendar'
+        });
+    }
+};
+
+/**
+ * Get user's streak information
+ */
+export const getStreak = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id)
+            .select('streakCount longestStreak lastActive');
+
+        res.json({
+            success: true,
+            data: {
+                currentStreak: user.streakCount,
+                longestStreak: user.longestStreak,
+                lastActive: user.lastActive
+            }
+        });
+    } catch (error) {
+        console.error('Get streak error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch streak'
         });
     }
 };
@@ -192,6 +341,9 @@ export const unlinkLeetCode = async (req, res) => {
 export default {
     getProfile,
     updateProfile,
+    recordActivity,
+    getActivityCalendar,
+    getStreak,
     linkLeetCode,
     syncLeetCode,
     unlinkLeetCode

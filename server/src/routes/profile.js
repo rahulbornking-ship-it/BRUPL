@@ -12,6 +12,11 @@ router.get('/', profileController.getProfile);
 router.patch('/', profileController.updateProfile);
 router.put('/', profileController.updateProfile);
 
+// Activity & Streak routes
+router.post('/activity', profileController.recordActivity);
+router.get('/activity/calendar', profileController.getActivityCalendar);
+router.get('/streak', profileController.getStreak);
+
 // LeetCode integration routes
 router.post('/leetcode/link', profileController.linkLeetCode);
 router.post('/leetcode/sync', profileController.syncLeetCode);

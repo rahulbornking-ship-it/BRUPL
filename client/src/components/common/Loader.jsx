@@ -11,13 +11,13 @@ export default function Loader() {
             {/* Logo */}
             <div className="mb-8">
                 <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-                    <span className="text-3xl">🎯</span>
+                    <img src="/favicon.png" alt="Adhyaya Logo" className="w-10 h-10 object-contain" />
                 </div>
             </div>
 
             {/* Gooey Text Animation */}
             <GooeyText
-                texts={["Babua BPL", "Loading...", "DSA Seekho", "Placement Pao"]}
+                texts={["Adhyaya", "Loading...", "DSA Seekho", "Placement Pao"]}
                 morphTime={1.5}
                 cooldownTime={0.5}
                 className="h-20 w-full max-w-lg"

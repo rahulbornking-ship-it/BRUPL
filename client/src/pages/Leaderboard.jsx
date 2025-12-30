@@ -307,7 +307,7 @@ export default function Leaderboard() {
                     <p className="text-gray-600 font-mono text-sm">
                         Made with <span className="text-secondary">♥</span> and <span className="text-primary">litti chokha</span> in Bihar.
                     </p>
-                    <p className="text-gray-700 text-xs mt-2">© 2024 Babua BPL Systems. All rights reserved by the gali ka don.</p>
+                    <p className="text-gray-700 text-xs mt-2">© 2024 Adhyaya Systems. All rights reserved by the gali ka don.</p>
                 </div>
             </footer>
         </div>
