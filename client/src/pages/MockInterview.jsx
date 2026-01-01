@@ -131,6 +131,7 @@ const navItems = [
     { name: 'Mock Interview', href: '/mock-interview', icon: Mic, active: true },
     { name: 'Revision', href: '/revision', icon: RotateCcw },
     { name: 'Rewards', href: '/how-to-earn', icon: Gift },
+    { name: 'Connect', href: '/mentors', icon: Users },
 ];
 
 // Interview types
@@ -283,56 +284,7 @@ export default function MockInterview() {
             <div className="fixed bottom-[-10%] left-[-5%] w-[50%] h-[50%] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none animate-pulse" style={{ animationDelay: '2s' }}></div>
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/5 rounded-full blur-[150px] pointer-events-none"></div>
 
-            {/* Top Navigation */}
-            <header className="relative z-50 bg-slate-950/40 backdrop-blur-xl border-b border-white/5 sticky top-0">
-                <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-                    <Link to="/" className="flex items-center gap-3 group">
-                        <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.3)] group-hover:scale-110 transition-all duration-500">
-                            <img src="/favicon.png" alt="Adhyaya Logo" className="w-8 h-8 object-contain" />
-                        </div>
-                        <div className="hidden md:block">
-                            <div className="font-black text-white tracking-tighter text-xl">ADHYAYA</div>
-                            <div className="text-[10px] text-cyan-400/60 uppercase tracking-[0.3em] font-bold">AI INTERVIEW</div>
-                        </div>
-                    </Link>
 
-                    {/* Centered Nav Links */}
-                    <nav className="hidden lg:flex items-center gap-2 px-2 py-1.5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
-                        {navItems.map((item) => (
-                            <Link
-                                key={item.name}
-                                to={item.href}
-                                className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${item.active
-                                    ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                    }`}
-                            >
-                                <item.icon className="w-4 h-4" />
-                                {item.name}
-                            </Link>
-                        ))}
-                    </nav>
-
-                    <div className="flex items-center gap-6">
-                        <button className="relative text-slate-400 hover:text-cyan-400 p-2.5 bg-white/5 rounded-xl border border-white/10 transition-all">
-                            <Bell className="w-5 h-5" />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-cyan-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]"></span>
-                        </button>
-                        <Link to="/profile" className="flex items-center gap-4 group">
-                            <div className="text-right hidden md:block">
-                                <div className="text-white font-bold text-sm tracking-tight">{userName} Bhaiya</div>
-                                <div className="text-emerald-400 text-[10px] font-black flex items-center gap-1.5 justify-end tracking-widest">
-                                    <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span>
-                                    ONLINE
-                                </div>
-                            </div>
-                            <div className="w-12 h-12 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-2xl flex items-center justify-center text-white font-black shadow-xl group-hover:scale-110 transition-all duration-500 border border-white/20">
-                                {userName.charAt(0)}
-                            </div>
-                        </Link>
-                    </div>
-                </div>
-            </header>
 
             <main className="container mx-auto px-6 py-12 max-w-7xl relative z-10">
                 {/* Hero Section */}
